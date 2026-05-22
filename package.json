@@ -1,11 +1,11 @@
 {
-  "name": "conexao-mysql-node",
+  "name": "conexao-banco-node",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "start": "mysqld --initialize-insecure --user=mysql && mysqld --user=mysql & sleep 5 && mysql -e 'CREATE DATABASE IF NOT EXISTS railway;' && node index.js"
+    "start": "node index.js"
   },
   "dependencies": {
-    "mysql2": "^3.11.0"
+    "sqlite3": "^5.1.7"
   }
 }
