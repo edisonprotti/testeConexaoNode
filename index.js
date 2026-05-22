@@ -24,8 +24,9 @@ const server = http.createServer(async (req, res) => {
             res.end(JSON.stringify({
                 sucesso: false,
                 erro: "Falha ao consultar o banco de dados interno.",
-                detalhe: erro.message // Opcional para debugar na aula
-            }));
+                detalhe: erro, // Mudamos de erro.message para erro (traz o objeto completo)
+                codigo_erro: erro.code || "Sem código"
+            }, null, 2));
         }
     } else {
         res.statusCode = 404;
