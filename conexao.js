@@ -1,30 +1,42 @@
 const mysql = require('mysql2/promise');
+const mysqlServer = require('mysql-server');
 
-// Configuração otimizada para o MySQL rodando na mesma instância/container do Node.js
-const pool = mysql.createPool({
-    // Utiliza 127.0.0.1 (IP local) pois o banco está debaixo do mesmo teto da aplicação
-    host: process.env.MYSQLHOST || '127.0.0.1',
-    
-    // Usuário padrão do MySQL
-    user: process.env.MYSQLUSER || 'root',
-    
-    // Lê a senha da memória do container. Substitua o valor padrão se necessário localmente
-    password: process.env.MYSQLPASSWORD || 'qvaBoMQcaojxgfFXUzWRkwZqOTvMxurd',
-    
-    // Nome do banco de dados lógico
-    database: process.env.MYSQLDATABASE || 'railway',
-    
-    // Porta padrão de escuta interna do MySQL
-    port: parseInt(process.env.MYSQLPORT) || 3306,
-    
-    // Configurações de performance para gerenciamento de requisições concorrentes
-    waitForConnections: true,
-    connectionLimit: 10,
-    queueLimit: 0,
-    
-    // Evita quedas de protocolo em conexões persistentes
-    enableKeepAlive: true,
-    keepAliveInitialDelay: 10000
-});
+let pool = null;
 
-module.exports = pool;
+async function iniciarConexao() {
+    if (!pool) {
+        try {
+            // 1. Inicia o servidor MySQL embutido na porta local 3306
+            const server = mysqlServer({
+                port: 3306,
+                db: 'railway'
+            });
+            await server.start();
+            console.log('✅ Servidor MySQL interno iniciado com sucesso!');
+
+            // 2. Cria o pool de conexões apontando para o próprio container
+            pool = mysql.createPool({
+                host: '127.0.0.1',
+                user: 'root',
+                password: '', // Servidores embutidos iniciam sem senha por padrão
+                database: 'railway',
+                port: 3306,
+                waitForConnections: true,
+                connectionLimit: 5,
+                queueLimit: 0
+            });
+        } catch (error) {
+            console.error('❌ Falha ao subir o motor do MySQL interno:', error.message);
+            throw error;
+        }
+    }
+    return pool;
+}
+
+// Exportamos uma função que garante que o pool só será usado após o banco estar vivo
+module.exports = {
+    query: async (sql, params) => {
+        const conexaoAtiva = await iniciarConexao();
+        return conexaoAtiva.query(sql, params);
+    }
+};
