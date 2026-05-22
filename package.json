@@ -1,11 +1,12 @@
 {
-  "name": "conexao-banco-node",
+  "name": "instancia-unificada-mysql-node",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
   },
   "dependencies": {
-    "sqlite3": "^5.1.7"
+    "mysql2": "^3.11.0",
+    "mysql-server": "^1.0.1"
   }
 }
