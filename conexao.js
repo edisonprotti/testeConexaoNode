@@ -1,17 +1,29 @@
 const mysql = require('mysql2/promise');
 
+// Configuração otimizada para o MySQL rodando na mesma instância/container do Node.js
 const pool = mysql.createPool({
-    host: 'autorack.proxy.rlwy.net', // Ex: autorack.proxy.rlwy.net
-    user: 'root',
-    password: 'qvaBoMQcaojxgfFXUzWRkwZqOTvMxurd', // Sua senha do banco
-    database: 'railway', 
-    port: parseInt('12345'), // Ex: 12345
+    // Utiliza 127.0.0.1 (IP local) pois o banco está debaixo do mesmo teto da aplicação
+    host: process.env.MYSQLHOST || '127.0.0.1',
+    
+    // Usuário padrão do MySQL
+    user: process.env.MYSQLUSER || 'root',
+    
+    // Lê a senha da memória do container. Substitua o valor padrão se necessário localmente
+    password: process.env.MYSQLPASSWORD || 'qvaBoMQcaojxgfFXUzWRkwZqOTvMxurd',
+    
+    // Nome do banco de dados lógico
+    database: process.env.MYSQLDATABASE || 'railway',
+    
+    // Porta padrão de escuta interna do MySQL
+    port: parseInt(process.env.MYSQLPORT) || 3306,
+    
+    // Configurações de performance para gerenciamento de requisições concorrentes
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0,
-    // Ajustes cruciais para evitar PROTOCOL_CONNECTION_LOST:
-    connectTimeout: 20000, // Dá mais tempo para o Railway responder (20 segundos)
-    enableKeepAlive: true, // Mantém a conexão viva em segundo plano
+    
+    // Evita quedas de protocolo em conexões persistentes
+    enableKeepAlive: true,
     keepAliveInitialDelay: 10000
 });
 
